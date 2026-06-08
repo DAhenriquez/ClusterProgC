@@ -108,7 +108,3 @@ Proyecto desarrollado para la asignatura de Programación Científica, Universid
 
 
 *Ingeniería Civil Informática UA - 2026*
-
-```
-
-```
