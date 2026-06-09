@@ -7,12 +7,15 @@ Despacha miles de mutaciones independientes de manera asíncrona[cite: 295, 503]
 import numpy as np
 import ipyparallel as ipp
 import time
+#Importación modular de telemetría para benchmarking
+from utils import registrar_tiempo
+
 
 def tarea_individual_fuzzing(parametros):
     """
     Envuelve la ejecución de una simulación mutada en el motor remoto.
     """
-    # SOLUCIÓN DE CONTEXTO: Importación local para el entorno aislado del motor
+    # Importación local para el entorno aislado del motor
     import numpy as np
     from sim_solver.rk4 import modelo_seir_base
     
@@ -38,7 +41,9 @@ def tarea_individual_fuzzing(parametros):
 def orquestar():
     try:
         rc = ipp.Client()
-        dview = rc.load_balanced_view() # Vista con balanceo dinámico de carga [cite: 368]
+        dview = rc.load_balanced_view() # Vista con balanceo dinámico de carga
+        #Obtener la cantidad de núcleos reales
+        size = len(rc.ids)
     except:
         print("Error al conectar. Verifica que levantaste 'ipcluster start'")
         return
@@ -48,7 +53,7 @@ def orquestar():
     tareas = [(np.random.uniform(0.3, 0.6), np.random.uniform(0.15, 0.35), 
                np.random.uniform(0.04, 0.12), 100000, 200, 0.25) for _ in range(num_sim)]
     
-    print(f"Enviando {num_sim} tareas asíncronas a la cola del clúster...")
+    print(f"Enviando {num_sim} tareas asíncronas a la cola del clúster de {size} motores...")
     t_inf = time.time()
     
     # Despacho asíncrono sin bloqueo del cliente central [cite: 318]
@@ -56,7 +61,11 @@ def orquestar():
     asinc_res.wait_interactive() # Renderizado interactivo de barra de progreso en terminal
     
     resultados = asinc_res.get()
-    print(f"Completado en: {time.time() - t_inf:.2f} segundos.")
+
+    t_total = time.time() - t_inf
+    print(f"Completado en: {t_total:.2f} segundos.")
+    #Registramos el tiempo de ejecución en el sistema de telemetría para benchmarking
+    registrar_tiempo("Fase 3 (Colas)", size, t_total)
 
 if __name__ == "__main__":
     orquestar()

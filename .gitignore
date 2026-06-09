@@ -8,3 +8,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Datos locales benchmark
+resultados_benchmarking.json
+benchmarking_hcp.png

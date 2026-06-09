@@ -1,13 +1,15 @@
 # main_mpi_vlan.py
 """
 Script de ejecución para la Fase 2: Redes Acopladas y Overhead vía MPI.
-Utiliza el paradigma SPMD para simular VLANs interconectadas[cite: 299, 452, 488].
+Utiliza el paradigma SPMD para simular VLANs interconectadas.
 """
 
 import numpy as np
 from mpi4py import MPI
-# Importación modular del solver abstracto (Cumple Requisito Fase 4)
+# Importación modular del solver abstracto 
 from sim_solver.rk4 import modelo_seir_base
+# Importación modular de telemetría para benchmarking
+from utils import registrar_tiempo
 
 def paso_rk4_distribuido(comm, rank, size, t, Y, h, beta, sigma, gamma, N):
     """
@@ -18,14 +20,14 @@ def paso_rk4_distribuido(comm, rank, size, t, Y, h, beta, sigma, gamma, N):
     I_recibido = np.array(0.0, dtype='d')
 
     # --- EVALUACIÓN K1 ---
-    # CRÍTICO: Barrera de sincronización punto a punto para intercambiar estado K1
+    # Barrera de sincronización punto a punto para intercambiar estado K1
     comm.Sendrecv(sendbuf=np.array(Y[2], dtype='d'), dest=vecino_der, sendtag=11,
                   recvbuf=I_recibido, source=vecino_izq, recvtag=11)
     k1 = modelo_seir_base(t, Y, beta, sigma, gamma, N, float(I_recibido))
 
     # --- EVALUACIÓN K2 ---
     Y2 = Y + (h / 2.0) * k1 
-    # CRÍTICO: Intercambio síncrono de la zona de halo para la pendiente intermedia K2
+    # Intercambio síncrono de la zona de halo para la pendiente intermedia K2
     comm.Sendrecv(sendbuf=np.array(Y2[2], dtype='d'), dest=vecino_der, sendtag=12,
                   recvbuf=I_recibido, source=vecino_izq, recvtag=12)
     k2 = modelo_seir_base(t + h/2.0, Y2, beta, sigma, gamma, N, float(I_recibido))
@@ -39,7 +41,7 @@ def paso_rk4_distribuido(comm, rank, size, t, Y, h, beta, sigma, gamma, N):
 
     # --- EVALUACIÓN K4 ---
     Y4 = Y + h * k3 
-    # CRÍTICO: Último intercambio de datos de frontera síncronos para cerrar el paso RK4
+    # Último intercambio de datos de frontera síncronos para cerrar el paso RK4
     comm.Sendrecv(sendbuf=np.array(Y4[2], dtype='d'), dest=vecino_der, sendtag=14,
                   recvbuf=I_recibido, source=vecino_izq, recvtag=14) 
     k4 = modelo_seir_base(t + h, Y4, beta, sigma, gamma, N, float(I_recibido)) 
@@ -58,7 +60,7 @@ def ejecutar():
     historial = np.zeros((pasos + 1, 4))
     historial[0] = Y
 
-    # CRÍTICO: Barrera global para sincronizar el inicio del cronómetro de rendimiento
+    # Barrera global para sincronizar el inicio del cronómetro de rendimiento
     comm.Barrier()
     t_inicio = MPI.Wtime()
 
@@ -67,15 +69,16 @@ def ejecutar():
         t += h
         historial[n+1] = Y
 
-    # CRÍTICO: Barrera global para detener el tiempo de cómputo unificadamente
+    # Barrera global para detener el tiempo de cómputo unificadamente
     comm.Barrier()
     t_total = MPI.Wtime() - t_inicio
 
-    # CRÍTICO: Operación colectiva Gather para consolidar los resultados en el nodo raíz (Rank 0)
+    # Barrera global para consolidar los resultados en el nodo raíz (Rank 0)
     todos_datos = comm.gather(historial, root=0)
     
     if rank == 0:
         print(f"Simulación finalizada en {t_total:.4f} segundos con {size} procesos.")
+        registrar_tiempo("Fase 2 (MPI)", size, t_total)
 
 if __name__ == "__main__":
     ejecutar()
