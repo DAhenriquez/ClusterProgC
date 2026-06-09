@@ -33,7 +33,7 @@ def ejecutar_baseline():
     
     # Parámetros temporales y epidemiológicos
     t, t_fin = 0.0, 100.0
-    pasos = 1200
+    pasos = 1000
     h = (t_fin - t) / pasos
     
     # Historiales para almacenar la curva temporal
