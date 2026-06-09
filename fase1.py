@@ -6,7 +6,7 @@ Valida la corrección matemática de la curva SEIR en un único hilo de ejecuci�
 
 import numpy as np
 import matplotlib.pyplot as plt
-# Importación modular del solver abstracto (Hito de la Fase 4)
+# Importación modular del solver abstracto 
 from sim_solver.rk4 import modelo_seir_base
 
 def paso_rk4_secuencial(t, Y, h, beta, sigma, gamma, N):
@@ -32,8 +32,8 @@ def ejecutar_baseline():
     Y = np.array([S0, E0, I0, P0])
     
     # Parámetros temporales y epidemiológicos
-    t, t_fin = 0.0, 50.0
-    pasos = 500
+    t, t_fin = 0.0, 100.0
+    pasos = 1200
     h = (t_fin - t) / pasos
     
     # Historiales para almacenar la curva temporal
@@ -43,7 +43,7 @@ def ejecutar_baseline():
     
     # Integración numérica pura (sin sobrecarga de comunicación)
     for n in range(pasos):
-        Y = paso_rk4_secuencial(t, Y, h, 0.4, 0.2, 0.05, N_total)
+        Y = paso_rk4_secuencial(t, Y, h, 1.5, 0.6, 0.15, N_total)
         t += h
         historial[n+1] = Y
         
@@ -53,7 +53,7 @@ def ejecutar_baseline():
     plt.plot(tiempo, historial[:, 1], label='Expuestos (E)', color='orange')
     plt.plot(tiempo, historial[:, 2], label='Infectados (I)', color='red')
     plt.plot(tiempo, historial[:, 3], label='Parcheados (P)', color='green')
-    plt.xlabel('Tiempo (Días)')
+    plt.xlabel('Tiempo (s)')
     plt.ylabel('Equipos en la Infraestructura')
     plt.title('Fase 1: Validación de Curva Epidemiológica SEIR Secuencial')
     plt.legend()
