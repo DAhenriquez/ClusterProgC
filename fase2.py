@@ -54,9 +54,9 @@ def ejecutar():
     size = comm.Get_size() 
     
     # Inicialización local de datos por proceso (VLAN de red)
-    N_vlan = 25000
+    N_vlan = 5000000
     Y = np.array([N_vlan - 50, 0, 50, 0], dtype='d') if rank == 0 else np.array([N_vlan, 0, 0, 0], dtype='d')
-    t, h, pasos = 0.0, 0.1, 100
+    t, h, pasos = 0.0, 0.1, 5000
     historial = np.zeros((pasos + 1, 4))
     historial[0] = Y
 
