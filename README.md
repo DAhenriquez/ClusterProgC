@@ -23,9 +23,13 @@ El sistema está diseñado bajo una arquitectura modular, separando el núcleo m
 │   ├── __init__.py
 │   └── rk4.py                # Modelo SEIR y algoritmo RK4 abstracto
 │
-├── fase1.py        # FASE 1: Simulación base y graficación
-├── fase2.py          # FASE 2: Ejecución acoplada vía MPI
-├── fase3.py     # FASE 3: Simulaciones Monte Carlo asíncronas
+├── utils/                    # Paquete de utilidades transversales
+│   ├── __init__.py
+│   └── telemetria.py         # Módulo de registro y benchmarking automatizado
+│
+├── fase1.py                  # FASE 1: Simulación base y graficación
+├── fase2.py                  # FASE 2: Ejecución acoplada vía MPI
+├── fase3.py                  # FASE 3: Simulaciones Monte Carlo asíncronas
 ├── .gitignore                # Reglas de exclusión para entornos y cachés
 └── README.md                 # Documentación técnica
 
@@ -75,7 +79,7 @@ python3 fase1.py
 
 ### Fase 2: Ejecución MPI (Redes Acopladas)
 
-Asigna un número específico de núcleos lógicos (VLANs). Reemplace `<num_procesos>` con la cantidad de núcleos deseada (por ejemplo, 4).
+Asigna un número específico de núcleos lógicos (VLANs). Reemplace `<num_procesos>` con la cantidad de núcleos deseada (por ejemplo, 4). Ejecutar múltiples veces con diferentes números de núcleos para alimentar el registro de telemetría.
 
 ```bash
 mpiexec -n <num_procesos> python3 fase2.py
@@ -84,7 +88,7 @@ mpiexec -n <num_procesos> python3 fase2.py
 
 ### Fase 3: Ejecución en Clúster Virtual (ipyparallel)
 
-Requiere el inicio previo de la infraestructura del clúster y los motores de procesamiento.
+Requiere el inicio previo de la infraestructura del clúster y los motores de procesamiento. Ejecutar variando el número de motores para recolectar métricas.
 
 ```bash
 # 1. Iniciar los motores de trabajo en una terminal independiente
@@ -95,7 +99,16 @@ python3 fase3.py
 
 ```
 
-Para detener el clúster una vez finalizada la simulación, utilice `Ctrl + C`  o `ipcluster stop` en la terminal donde se iniciaron los motores.
+Para detener el clúster una vez finalizada la simulación, utilice `Ctrl + C` o `ipcluster stop` en la terminal donde se iniciaron los motores.
+
+### Fase 4: Generación de Gráficas de Rendimiento (Benchmarking)
+
+Una vez registradas múltiples ejecuciones de las Fases 2 y 3, ejecute el módulo de telemetría para procesar el archivo JSON, promediar los tiempos y generar automáticamente las gráficas comparativas de Speedup y Eficiencia Paralela.
+
+```bash
+python3 utils/telemetria.py
+
+```
 
 ---
 
@@ -105,6 +118,5 @@ Proyecto desarrollado para la asignatura de Programación Científica, Universid
 
 * **Diego A. Henríquez**
 * **Carlos I. Márquez**
-
 
 *Ingeniería Civil Informática UA - 2026*
