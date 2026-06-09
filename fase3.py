@@ -1,7 +1,7 @@
 # main_fuzzing_colas.py
 """
 Script de ejecución para la Fase 3: Fuzzing y Monte Carlo vía Colas de Trabajo.
-Despacha miles de mutaciones independientes de manera asíncrona[cite: 295, 503].
+Despacha miles de mutaciones independientes de manera asíncrona.
 """
 
 import numpy as np
@@ -48,16 +48,16 @@ def orquestar():
         print("Error al conectar. Verifica que levantaste 'ipcluster start'")
         return
 
-    num_sim = 5000
+    num_sim = 10000
     np.random.seed(42)
     tareas = [(np.random.uniform(0.3, 0.6), np.random.uniform(0.15, 0.35), 
-               np.random.uniform(0.04, 0.12), 100000, 200, 0.25) for _ in range(num_sim)]
+               np.random.uniform(0.04, 0.12), 100000, 5000, 0.01) for _ in range(num_sim)]
     
     print(f"Enviando {num_sim} tareas asíncronas a la cola del clúster de {size} motores...")
     t_inf = time.time()
     
-    # Despacho asíncrono sin bloqueo del cliente central [cite: 318]
-    asinc_res = dview.map_async(tarea_individual_fuzzing, tareas)
+    # Despacho asíncrono sin bloqueo del cliente central 
+    asinc_res = dview.map_async(tarea_individual_fuzzing, tareas, chunksize=100)
     asinc_res.wait_interactive() # Renderizado interactivo de barra de progreso en terminal
     
     resultados = asinc_res.get()
